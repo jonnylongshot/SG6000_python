@@ -102,13 +102,13 @@ class SG6000:
 
 # Sample usage provided if called from the command line
 if __name__ ==  '__main__':
-    #Set serial port device for ERAsynth here
+    #Set serial port device for synthesizer here
     serial_dev = '/dev/cu.usbserial-DM01PS7W'
 
-    #Open device with default serial port
+    #Open device with specified serial port
     synth = SG6000(serial_dev)
 
-    #display status
+    #display device identifier
     idn = synth.get_idn()
     print(f"IDN = {idn}")
 
