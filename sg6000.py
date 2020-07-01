@@ -18,6 +18,7 @@ import time
 # https://www.dsinstruments.com/support/dsi-scpi-command-list/
 class SG6000cmd:
     IDN     = "*IDN"        #Return the SCPI identification string
+    RESET   = "*RST"        #Reset instrument
     FREQ    = "FREQ:CW"     #Frequency in Hz
     DBM     = "POWER"       #Output power level in dBm
     RFOUT   = "OUTP:STAT"   #RF output "on" or "off"
@@ -58,6 +59,9 @@ class SG6000:
         idn = self.send_cmd_resp(f"{SG6000cmd.IDN}?")
         return idn
 
+    #issue reset
+    def reset(self):
+        self.send_cmd(f"{SG6000cmd.RESET}")
 
     #get synthesizer frequency
     def get_freq(self):
@@ -97,12 +101,15 @@ class SG6000:
 
 # Sample usage provided if called from the command line
 if __name__ ==  '__main__':
-    #Set serial port device for ERAsynth here
+    #Set serial port device for synthesizer here
     serial_dev = '/dev/cu.usbserial-DM01PS7W'
 
     #Open device with default serial port
     synth = SG6000(serial_dev)
 
+    #reset device (not necessarily needed, included here as demo)
+    synth.reset()
+    
     #display status
     idn = synth.get_idn()
     print(f"IDN = {idn}")
