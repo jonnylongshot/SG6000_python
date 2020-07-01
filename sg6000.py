@@ -13,6 +13,7 @@
 import serial
 import io
 import time
+import sys
 
 #Define the commands for the SG6000 as listed in the documentation here:
 # https://www.dsinstruments.com/support/dsi-scpi-command-list/
@@ -24,21 +25,21 @@ class SG6000cmd:
     RFOUT   = "OUTP:STAT"   #RF output "on" or "off"
 
 
-#Utility class for controlling the ERAsynth Micro
+#Utility class for controlling the syntehsizer
 class SG6000:
-    #Back-to-back serial commands don't work without a pause.
-    # This delay fixes the problem.
-    SEND_DELAY = 0.1    #pause this many seconds after sending
+    #Create pause between Back-to-back serial commands
+    SEND_DELAY = 0.1    #delay in seconds
 
     #Class Initializer
     # Main purpose is to open the serial port
     def __init__(self, serial_device):
-        self.ser = serial.Serial(serial_device, 115200, timeout=1, rtscts=0)
-        self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
+        try:
+            self.ser = serial.Serial(serial_device, 115200, timeout=1, rtscts=0)
+            self.sio = io.TextIOWrapper(io.BufferedRWPair(self.ser, self.ser))
+        except Exception as e:
+            print(f"{str(e)}")
+            sys.exit(0)
 
-    #Destructor
-    def __del__(self):
-        self.ser.close()
 
     #Send a command without a response
     def send_cmd(self, cmd):
@@ -101,15 +102,12 @@ class SG6000:
 
 # Sample usage provided if called from the command line
 if __name__ ==  '__main__':
-    #Set serial port device for synthesizer here
+    #Set serial port device for ERAsynth here
     serial_dev = '/dev/cu.usbserial-DM01PS7W'
 
     #Open device with default serial port
     synth = SG6000(serial_dev)
 
-    #reset device (not necessarily needed, included here as demo)
-    synth.reset()
-    
     #display status
     idn = synth.get_idn()
     print(f"IDN = {idn}")
