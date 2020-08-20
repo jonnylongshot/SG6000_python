@@ -23,6 +23,7 @@ class SG6000cmd:
     FREQ    = "FREQ:CW"     #Frequency in Hz
     DBM     = "POWER"       #Output power level in dBm
     RFOUT   = "OUTP:STAT"   #RF output "on" or "off"
+    BUZZER  = "*BUZZER"     #Enable muting of the internal buzzer
 
 
 #Utility class for controlling the syntehsizer
@@ -85,7 +86,6 @@ class SG6000:
         fdbm = float(dbm)
         self.send_cmd(f"{SG6000cmd.DBM} {fdbm}")
 
-
     #get RF output enaable status
     def get_rfout(self):
         onoff_str = self.send_cmd_resp(f"{SG6000cmd.RFOUT}?")
@@ -95,10 +95,23 @@ class SG6000:
     def set_rfout(self, onoff_str):
         self.send_cmd(f"{SG6000cmd.RFOUT} {onoff_str}")
 
+    #set buzzer state ("on" or "off")
+    def set_buzzer_state(self, onoff_str):
+        self.send_cmd(f"{SG6000cmd.BUZZER} {onoff_str}")
 
 
-
-
+    # sweep tone across frequency
+    # dwell_ms = amount of time to stay at each freq step. Actual delay cannot be smaller than SEND_DELAY
+    # reps = number of times to repeat the sweep.
+    def cw_sweep(self, start_hz=1e9, stop_hz=6e9, step_hz=1e6, dwell_ms=10, reps=1):
+        loop_active = True
+        while(reps > 0):
+            reps = reps - 1
+            for freq in range(int(start_hz), int(stop_hz+step_hz), int(step_hz)):                
+                self.set_freq(freq)
+                # print(f"Frequency: {freq} Hz")
+                #subtract serial command processing time from overall dwell time
+                time.sleep(max(dwell_ms/1000 - self.SEND_DELAY, 0))
 
 # Sample usage provided if called from the command line
 if __name__ ==  '__main__':
@@ -128,5 +141,18 @@ if __name__ ==  '__main__':
 
     #Enable the output, pause, then disable
     synth.set_rfout("on")
-    time.sleep(2)
-    synth.set_rfout("off")
+    # time.sleep(2)
+    # synth.set_rfout("off")
+
+    #turn buzzer off
+    synth.set_buzzer_state("OFF")
+
+    #do a CW sweep
+    start_hz = 50e6
+    stop_hz = 900e6
+    step_hz = 1e6
+    dwell_ms = 10
+    rep_cnt = 2
+    synth.cw_sweep(start_hz, stop_hz, step_hz, dwell_ms, rep_cnt)
+
+
